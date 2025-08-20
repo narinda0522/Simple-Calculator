@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Sederhana</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .calculator {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 350px;
+            width: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        .calculator:hover {
+            transform: translateY(-5px);
+        }
+
+        .display {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: right;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .display input {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 2.5em;
+            font-weight: 300;
+            width: 100%;
+            text-align: right;
+            outline: none;
+        }
+
+        .display input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-size: 1.3em;
+            font-weight: 500;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn.operator {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+        }
+
+        .btn.operator:hover {
+            background: linear-gradient(135deg, #ff5252, #ff7043);
+        }
+
+        .btn.equals {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            grid-column: span 2;
+        }
+
+        .btn.equals:hover {
+            background: linear-gradient(135deg, #26d0ce, #2e8b57);
+        }
+
+        .btn.clear {
+            background: linear-gradient(135deg, #ff9a9e, #fecfef);
+            color: #333;
+        }
+
+        .btn.clear:hover {
+            background: linear-gradient(135deg, #ff8a95, #ffc3ee);
+        }
+
+        .btn.zero {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 480px) {
+            .calculator {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .display input {
+                font-size: 2em;
+            }
+            
+            .btn {
+                padding: 15px;
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display">
+            <input type="text" id="screen" placeholder="0" readonly>
+        </div>
+        
+        <div class="buttons">
+            <button class="btn clear" onclick="clearScreen()">C</button>
+            <button class="btn clear" onclick="deleteLast()">⌫</button>
+            <button class="btn operator" onclick="appendToScreen('/')">/</button>
+            <button class="btn operator" onclick="appendToScreen('*')">×</button>
+            
+            <button class="btn" onclick="appendToScreen('7')">7</button>
+            <button class="btn" onclick="appendToScreen('8')">8</button>
+            <button class="btn" onclick="appendToScreen('9')">9</button>
+            <button class="btn operator" onclick="appendToScreen('-')">-</button>
+            
+            <button class="btn" onclick="appendToScreen('4')">4</button>
+            <button class="btn" onclick="appendToScreen('5')">5</button>
+            <button class="btn" onclick="appendToScreen('6')">6</button>
+            <button class="btn operator" onclick="appendToScreen('+')">+</button>
+            
+            <button class="btn" onclick="appendToScreen('1')">1</button>
+            <button class="btn" onclick="appendToScreen('2')">2</button>
+            <button class="btn" onclick="appendToScreen('3')">3</button>
+            <button class="btn" onclick="appendToScreen('.')">.</button>
+            
+            <button class="btn zero" onclick="appendToScreen('0')">0</button>
+            <button class="btn equals" onclick="calculate()">=</button>
+        </div>
+    </div>
+
+    <script>
+        let screen = document.getElementById('screen');
+        let currentInput = '';
+        let operator = '';
+        let previousInput = '';
+        
+        function appendToScreen(value) {
+            if (screen.value === '0' || screen.value === 'Error') {
+                screen.value = '';
+            }
+            
+            // Prevent multiple operators in a row
+            if (['+', '-', '*', '/'].includes(value) && ['+', '-', '*', '/'].includes(screen.value.slice(-1))) {
+                return;
+            }
+            
+            // Prevent multiple decimal points
+            if (value === '.' && screen.value.includes('.')) {
+                return;
+            }
+            
+            screen.value += value;
+            
+            // Add subtle animation
+            screen.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                screen.style.transform = 'scale(1)';
+            }, 100);
+        }
+        
+        function clearScreen() {
+            screen.value = '0';
+            currentInput = '';
+            operator = '';
+            previousInput = '';
+            
+            // Add animation
+            screen.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                screen.style.transform = 'scale(1)';
+            }, 100);
+        }
+        
+        function deleteLast() {
+            if (screen.value.length > 1) {
+                screen.value = screen.value.slice(0, -1);
+            } else {
+                screen.value = '0';
+            }
+        }
+        
+        function calculate() {
+            try {
+                let expression = screen.value;
+                expression = expression.replace(/×/g, '*');
+                
+                // Basic security check
+                if (/[^0-9+\-*/.() ]/.test(expression)) {
+                    throw new Error('Invalid characters');
+                }
+                
+                let result = eval(expression);
+                
+                if (isFinite(result)) {
+                    screen.value = parseFloat(result.toFixed(10)).toString();
+                } else {
+                    screen.value = 'Error';
+                }
+                
+                // Add success animation
+                screen.style.background = 'rgba(76, 175, 80, 0.3)';
+                setTimeout(() => {
+                    screen.style.background = 'rgba(0, 0, 0, 0.3)';
+                }, 300);
+                
+            } catch (error) {
+                screen.value = 'Error';
+                
+                // Add error animation
+                screen.style.background = 'rgba(244, 67, 54, 0.3)';
+                setTimeout(() => {
+                    screen.style.background = 'rgba(0, 0, 0, 0.3)';
+                }, 300);
+            }
+        }
+        
+        // Keyboard support
+        document.addEventListener('keydown', function(event) {
+            const key = event.key;
+            
+            if (key >= '0' && key <= '9') {
+                appendToScreen(key);
+            } else if (key === '.') {
+                appendToScreen('.');
+            } else if (key === '+') {
+                appendToScreen('+');
+            } else if (key === '-') {
+                appendToScreen('-');
+            } else if (key === '*') {
+                appendToScreen('*');
+            } else if (key === '/') {
+                event.preventDefault();
+                appendToScreen('/');
+            } else if (key === 'Enter' || key === '=') {
+                event.preventDefault();
+                calculate();
+            } else if (key === 'Escape') {
+                clearScreen();
+            } else if (key === 'Backspace') {
+                event.preventDefault();
+                deleteLast();
+            }
+        });
+    </script>
+</body>
+</html>
